@@ -1,0 +1,47 @@
+# This is a basic workflow that is manually triggered
+
+name: Deploy IaC
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch
+  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+
+env:
+  targetEnv: myappasosiac  # my App ASOS IaC
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "Hello ASOS team! Check my super secret ${{secrets.SUPERSECRET}}"
+    
+    
+  # This workflow contains a single job called "deploy"
+  job2:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3.3.0
+      
+    # Runs a single command using the runners shell
+    - name: Azure Login
+      uses: Azure/login@v1.4.6
+      with:
+        # Paste output of `az ad sp create-for-rbac` as value of secret variable: AZURE_CREDENTIALS
+        creds: ${{ secrets.SERVICEPRINCIPAL }}
+        
+    - name: Deploy Azure Resource Manager (ARM) Template
+      uses: Azure/arm-deploy@v1.0.8
+      with:
+        # Provide the scope of the deployment. Valid values are: 'resourcegroup', 'managementgroup', 'subscription'
+        resourceGroupName: ASOS-demo
+        subscriptionId: cb72b49c-6479-4ec7-891f-f18be9ee10f2
+        template: arm-template.json
+        parameters: webAppName = ${{ env.targetEnv }}  # might get rid of this!!!!!!!!!!!!!!!!
